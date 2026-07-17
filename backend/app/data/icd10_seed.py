@@ -1,0 +1,287 @@
+"""
+Curated subset of real ICD-10-CM codes (~260 entries), weighted toward musculoskeletal/
+spine/orthopedic conditions since Kyron's example templates lean orthopedic (orthopedic
+follow-up, new patient evaluation, urgent care), with general primary/urgent-care codes
+rounding it out. Embedded locally at seed time -- no external ICD-10 API dependency.
+"""
+
+ICD10_CODES: list[tuple[str, str]] = [
+    # Spine / back
+    ("M54.5", "Low back pain"),
+    ("M54.2", "Cervicalgia"),
+    ("M54.6", "Pain in thoracic spine"),
+    ("M54.9", "Dorsalgia, unspecified"),
+    ("M54.1", "Radiculopathy"),
+    ("M54.16", "Radiculopathy, lumbar region"),
+    ("M54.12", "Radiculopathy, cervical region"),
+    ("M51.26", "Other intervertebral disc displacement, lumbar region"),
+    ("M51.16", "Intervertebral disc disorders with radiculopathy, lumbar region"),
+    ("M50.20", "Cervical disc displacement, unspecified"),
+    ("M50.10", "Cervical disc disorder with radiculopathy, unspecified"),
+    ("M48.06", "Spinal stenosis, lumbar region"),
+    ("M48.02", "Spinal stenosis, cervical region"),
+    ("M43.16", "Spondylolisthesis, lumbar region"),
+    ("M43.06", "Spondylolysis, lumbar region"),
+    ("M47.816", "Spondylosis without myelopathy, lumbar region"),
+    ("M47.812", "Spondylosis without myelopathy, cervical region"),
+    ("M47.26", "Other spondylosis with radiculopathy, lumbar region"),
+    ("M46.46", "Discitis, unspecified, lumbar region"),
+    ("M40.20", "Kyphosis, unspecified"),
+    ("M41.20", "Other idiopathic scoliosis, unspecified"),
+    ("M53.2X6", "Spinal instabilities, lumbar region"),
+    ("M53.3", "Sacrococcygeal disorders, not elsewhere classified"),
+    ("M53.1", "Cervicobrachial syndrome"),
+    ("M62.830", "Muscle spasm of back"),
+    ("M79.1", "Myalgia"),
+    ("G89.29", "Other chronic pain"),
+    ("G89.4", "Chronic pain syndrome"),
+    ("M25.50", "Pain in unspecified joint"),
+
+    # Shoulder / upper extremity
+    ("M75.100", "Unspecified rotator cuff tear or rupture, right shoulder, not specified as traumatic"),
+    ("M75.101", "Unspecified rotator cuff tear or rupture, right shoulder"),
+    ("M75.102", "Unspecified rotator cuff tear or rupture, left shoulder"),
+    ("M75.30", "Calcific tendinitis of unspecified shoulder"),
+    ("M75.40", "Impingement syndrome of unspecified shoulder"),
+    ("M75.20", "Bicipital tendinitis, unspecified shoulder"),
+    ("M75.00", "Adhesive capsulitis of unspecified shoulder"),
+    ("M25.511", "Pain in right shoulder"),
+    ("M25.512", "Pain in left shoulder"),
+    ("S43.401A", "Sprain of unspecified rotator cuff capsule, right shoulder, initial encounter"),
+    ("M19.011", "Primary osteoarthritis, right shoulder"),
+    ("M77.10", "Lateral epicondylitis, unspecified elbow"),
+    ("M77.00", "Medial epicondylitis, unspecified elbow"),
+    ("M25.521", "Pain in right elbow"),
+    ("M25.522", "Pain in left elbow"),
+    ("G56.00", "Carpal tunnel syndrome, unspecified upper limb"),
+    ("M65.9", "Unspecified synovitis and tenosynovitis"),
+    ("M65.4", "Radial styloid tenosynovitis [de Quervain]"),
+    ("M25.531", "Pain in right wrist"),
+    ("M25.532", "Pain in left wrist"),
+    ("M19.041", "Primary osteoarthritis, right hand"),
+    ("M79.641", "Pain in right hand"),
+    ("M79.642", "Pain in left hand"),
+
+    # Hip / lower extremity
+    ("M25.551", "Pain in right hip"),
+    ("M25.552", "Pain in left hip"),
+    ("M16.10", "Unilateral primary osteoarthritis, unspecified hip"),
+    ("M16.0", "Bilateral primary osteoarthritis of hip"),
+    ("M25.561", "Pain in right knee"),
+    ("M25.562", "Pain in left knee"),
+    ("M17.10", "Unilateral primary osteoarthritis, unspecified knee"),
+    ("M17.0", "Bilateral primary osteoarthritis of knee"),
+    ("M23.50", "Chronic instability of unspecified knee"),
+    ("M23.221", "Derangement of anterior horn of medial meniscus due to old tear or injury, right knee"),
+    ("S83.511A", "Sprain of anterior cruciate ligament of right knee, initial encounter"),
+    ("S83.512A", "Sprain of anterior cruciate ligament of left knee, initial encounter"),
+    ("M76.60", "Achilles tendinitis, unspecified leg"),
+    ("M76.50", "Patellar tendinitis, unspecified knee"),
+    ("M76.891", "Other specified enthesopathies of right lower limb, excluding foot"),
+    ("M77.30", "Calcaneal spur, unspecified foot"),
+    ("M77.9", "Enthesopathy, unspecified"),
+    ("M25.571", "Pain in right ankle and joints of right foot"),
+    ("M25.572", "Pain in left ankle and joints of left foot"),
+    ("S93.401A", "Sprain of unspecified ligament of right ankle, initial encounter"),
+    ("S93.402A", "Sprain of unspecified ligament of left ankle, initial encounter"),
+    ("M20.10", "Hallux valgus (acquired), unspecified foot"),
+    ("M72.2", "Plantar fascial fibromatosis"),
+    ("M79.671", "Pain in right toe(s)"),
+
+    # Neck / general orthopedic
+    ("S16.1XXA", "Strain of muscle, fascia and tendon at neck level, initial encounter"),
+    ("M99.01", "Segmental and somatic dysfunction of cervical region"),
+    ("M99.03", "Segmental and somatic dysfunction of lumbar region"),
+    ("M62.81", "Muscle weakness (generalized)"),
+    ("M25.9", "Joint disorder, unspecified"),
+    ("M79.7", "Fibromyalgia"),
+    ("M06.9", "Rheumatoid arthritis, unspecified"),
+    ("M05.79", "Rheumatoid arthritis with rheumatoid factor of multiple sites without organ involvement"),
+    ("M10.9", "Gout, unspecified"),
+    ("M81.0", "Age-related osteoporosis without current pathological fracture"),
+    ("M85.80", "Other specified disorders of bone density and structure, unspecified site"),
+    ("M62.838", "Other muscle spasm"),
+
+    # Fractures
+    ("S32.009A", "Unspecified fracture of unspecified lumbar vertebra, initial encounter"),
+    ("S12.9XXA", "Unspecified injury of neck, initial encounter"),
+    ("S42.001A", "Unspecified fracture of right clavicle, initial encounter"),
+    ("S42.301A", "Unspecified fracture of shaft of humerus, right arm, initial encounter"),
+    ("S52.501A", "Unspecified fracture of the lower end of right radius, initial encounter"),
+    ("S62.001A", "Unspecified fracture of navicular bone of right wrist, initial encounter"),
+    ("S72.001A", "Fracture of unspecified part of neck of right femur, initial encounter"),
+    ("S82.001A", "Unspecified fracture of right patella, initial encounter"),
+    ("S82.101A", "Unspecified fracture of upper end of right tibia, initial encounter"),
+    ("S92.001A", "Unspecified fracture of right calcaneus, initial encounter"),
+    ("S02.0XXA", "Fracture of vault of skull, initial encounter"),
+
+    # Post-op / follow-up
+    ("Z98.890", "Other specified postprocedural states"),
+    ("Z47.1", "Aftercare following joint replacement surgery"),
+    ("Z47.89", "Encounter for other orthopedic aftercare"),
+    ("Z09", "Encounter for follow-up examination after completed treatment for conditions other than malignant neoplasm"),
+    ("Z96.641", "Presence of right artificial hip joint"),
+    ("Z96.642", "Presence of left artificial hip joint"),
+    ("Z96.651", "Presence of right artificial knee joint"),
+    ("Z96.652", "Presence of left artificial knee joint"),
+    ("Z96.621", "Presence of right artificial shoulder joint"),
+    ("Z48.815", "Encounter for surgical aftercare following surgery on the musculoskeletal system"),
+
+    # Neurological
+    ("G54.4", "Lumbosacral root disorders, not elsewhere classified"),
+    ("G57.00", "Lesion of sciatic nerve, unspecified lower limb"),
+    ("G56.01", "Carpal tunnel syndrome, right upper limb"),
+    ("G56.02", "Carpal tunnel syndrome, left upper limb"),
+    ("G62.9", "Polyneuropathy, unspecified"),
+    ("R29.5", "Transient paralysis"),
+    ("R20.2", "Paresthesia of skin"),
+    ("G45.9", "Transient cerebral ischemic attack, unspecified"),
+    ("R51.9", "Headache, unspecified"),
+    ("G43.909", "Migraine, unspecified, not intractable, without status migrainosus"),
+    ("G47.00", "Insomnia, unspecified"),
+
+    # General primary care / chronic disease
+    ("I10", "Essential (primary) hypertension"),
+    ("E11.9", "Type 2 diabetes mellitus without complications"),
+    ("E11.65", "Type 2 diabetes mellitus with hyperglycemia"),
+    ("E78.5", "Hyperlipidemia, unspecified"),
+    ("E66.9", "Obesity, unspecified"),
+    ("E03.9", "Hypothyroidism, unspecified"),
+    ("F41.9", "Anxiety disorder, unspecified"),
+    ("F32.9", "Major depressive disorder, single episode, unspecified"),
+    ("F41.1", "Generalized anxiety disorder"),
+    ("Z00.00", "Encounter for general adult medical examination without abnormal findings"),
+    ("Z00.129", "Encounter for routine child health examination without abnormal findings"),
+    ("Z23", "Encounter for immunization"),
+
+    # Respiratory / urgent care
+    ("J06.9", "Acute upper respiratory infection, unspecified"),
+    ("J02.9", "Acute pharyngitis, unspecified"),
+    ("J03.90", "Acute tonsillitis, unspecified"),
+    ("J20.9", "Acute bronchitis, unspecified"),
+    ("J45.909", "Unspecified asthma, uncomplicated"),
+    ("J44.9", "Chronic obstructive pulmonary disease, unspecified"),
+    ("J01.90", "Acute sinusitis, unspecified"),
+    ("J18.9", "Pneumonia, unspecified organism"),
+    ("R05.9", "Cough, unspecified"),
+    ("R06.02", "Shortness of breath"),
+    ("R50.9", "Fever, unspecified"),
+    ("R07.9", "Chest pain, unspecified"),
+
+    # GI
+    ("R10.9", "Unspecified abdominal pain"),
+    ("R10.31", "Right lower quadrant pain"),
+    ("K21.9", "Gastro-esophageal reflux disease without esophagitis"),
+    ("K59.00", "Constipation, unspecified"),
+    ("K52.9", "Noninfective gastroenteritis and colitis, unspecified"),
+    ("R11.0", "Nausea"),
+    ("R11.2", "Nausea with vomiting, unspecified"),
+    ("K30", "Functional dyspepsia"),
+
+    # Genitourinary
+    ("N39.0", "Urinary tract infection, site not specified"),
+    ("R30.0", "Dysuria"),
+    ("N23", "Unspecified renal colic"),
+
+    # Skin / soft tissue
+    ("L03.90", "Cellulitis, unspecified"),
+    ("L02.91", "Cutaneous abscess, unspecified"),
+    ("L30.9", "Dermatitis, unspecified"),
+    ("L20.9", "Atopic dermatitis, unspecified"),
+    ("S01.90XA", "Unspecified open wound of unspecified part of head, initial encounter"),
+    ("S61.409A", "Unspecified open wound of unspecified hand, initial encounter"),
+    ("T14.90XA", "Injury, unspecified, initial encounter"),
+
+    # Trauma / injury general
+    ("S00.93XA", "Contusion of unspecified part of head, initial encounter"),
+    ("S09.90XA", "Unspecified injury of head, initial encounter"),
+    ("S13.4XXA", "Sprain of ligaments of cervical spine, initial encounter"),
+    ("S23.3XXA", "Sprain of ligaments of thoracic spine, initial encounter"),
+    ("S33.5XXA", "Sprain of ligaments of lumbar spine, initial encounter"),
+    ("S39.012A", "Strain of muscle, fascia and tendon of lower back, initial encounter"),
+    ("S46.011A", "Strain of muscle, fascia and tendon of the rotator cuff of right shoulder, initial encounter"),
+    ("S76.111A", "Strain of quadriceps muscle, fascia and tendon, right thigh, initial encounter"),
+    ("S86.011A", "Strain of right Achilles tendon, initial encounter"),
+    ("S96.911A", "Unspecified injury of muscle and tendon of right foot, initial encounter"),
+    ("W01.10XA", "Fall on same level from slipping, tripping and stumbling without subsequent striking against object, initial encounter"),
+    ("V89.2XXA", "Person injured in unspecified motor-vehicle accident, traffic, initial encounter"),
+
+    # Falls / gait
+    ("R26.81", "Unsteadiness on feet"),
+    ("R26.2", "Difficulty in walking, not elsewhere classified"),
+    ("R29.6", "Repeated falls"),
+    ("Z91.81", "History of falling"),
+
+    # Sports medicine
+    ("S46.911A", "Strain of unspecified muscle, fascia and tendon at shoulder and upper arm level, right arm, initial encounter"),
+    ("S76.891A", "Other specified injury of muscle and tendon at hip and thigh level, right leg, initial encounter"),
+    ("M79.601", "Pain in right arm"),
+    ("M79.602", "Pain in left arm"),
+    ("M79.604", "Pain in right leg"),
+    ("M79.605", "Pain in left leg"),
+    ("M79.18", "Myalgia, other site"),
+    ("M62.40", "Contracture of muscle, unspecified site"),
+
+    # Pediatric / congenital orthopedic
+    ("Q66.89", "Other specified congenital deformities of feet"),
+    ("Q68.5", "Congenital deformity of long bones of leg"),
+    ("M91.90", "Juvenile osteochondrosis of hip and pelvis, unspecified"),
+    ("M92.50", "Juvenile osteochondrosis of tibia and fibula, unspecified"),
+
+    # Osteo / bone metabolic
+    ("M80.00XA", "Age-related osteoporosis with current pathological fracture, unspecified site, initial encounter"),
+    ("M84.359A", "Stress fracture, unspecified foot, initial encounter for fracture"),
+    ("M89.9", "Disorder of bone, unspecified"),
+    ("M86.9", "Osteomyelitis, unspecified"),
+    ("M87.859", "Other osteonecrosis, unspecified bone"),
+
+    # Autoimmune / systemic affecting joints
+    ("M32.9", "Systemic lupus erythematosus, unspecified"),
+    ("M35.9", "Systemic involvement of connective tissue, unspecified"),
+    ("M08.00", "Unspecified juvenile rheumatoid arthritis of unspecified site"),
+    ("M45.9", "Ankylosing spondylitis of unspecified sites in spine"),
+
+    # Cardio / general exam findings occasionally noted in orthopedic visits
+    ("R00.2", "Palpitations"),
+    ("I25.10", "Atherosclerotic heart disease of native coronary artery without angina pectoris"),
+    ("R73.09", "Other abnormal glucose"),
+
+    # Miscellaneous common outpatient
+    ("R42", "Dizziness and giddiness"),
+    ("R53.83", "Other fatigue"),
+    ("R63.4", "Abnormal weight loss"),
+    ("R60.9", "Edema, unspecified"),
+    ("R22.40", "Localized swelling, mass and lump, unspecified limb"),
+    ("R22.41", "Localized swelling, mass and lump, right upper limb"),
+    ("R22.42", "Localized swelling, mass and lump, left upper limb"),
+    ("R22.31", "Localized swelling, mass and lump, right lower limb"),
+    ("R22.32", "Localized swelling, mass and lump, left lower limb"),
+    ("Z71.89", "Other specified counseling"),
+    ("Z76.89", "Persons encountering health services in other specified circumstances"),
+
+    # ENT
+    ("H66.90", "Otitis media, unspecified, unspecified ear"),
+    ("H61.20", "Impacted cerumen, unspecified ear"),
+    ("H81.10", "Benign paroxysmal vertigo, unspecified ear"),
+
+    # Eye
+    ("H10.9", "Unspecified conjunctivitis"),
+    ("H52.4", "Presbyopia"),
+
+    # Additional spine specificity (common in orthopedic/spine practice)
+    ("M54.30", "Sciatica, unspecified side"),
+    ("M54.31", "Sciatica, right side"),
+    ("M54.32", "Sciatica, left side"),
+    ("M51.36", "Other intervertebral disc degeneration, lumbar region"),
+    ("M51.9", "Unspecified thoracic, thoracolumbar and lumbosacral intervertebral disc disorder"),
+    ("M50.90", "Cervical disc disorder, unspecified, unspecified cervical region"),
+    ("M53.86", "Other specified dorsopathies, lumbar region"),
+    ("M53.87", "Other specified dorsopathies, lumbosacral region"),
+    ("M96.1", "Postlaminectomy syndrome, not elsewhere classified"),
+    ("G95.20", "Unspecified cord compression"),
+    ("M47.28", "Other spondylosis with radiculopathy, sacral and sacrococcygeal region"),
+    ("M43.27", "Fusion of spine, lumbosacral region"),
+    ("Q76.2", "Congenital spondylolisthesis"),
+]
+
+assert len(ICD10_CODES) >= 200, f"need at least 200 ICD-10 seed codes, have {len(ICD10_CODES)}"

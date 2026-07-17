@@ -1,0 +1,121 @@
+// Kyron Clinical Scribe -- database schema in DBML.
+// Paste this at https://dbdiagram.io (or File > Import > DBML) to render the ERD --
+// dbdiagram draws each relationship arrow from the exact FK column to the exact PK
+// column it references, rather than a generic table-to-table connection.
+
+Enum user_role {
+  provider
+  admin
+}
+
+Enum encounter_status {
+  draft
+  saved
+  abandoned
+}
+
+Table users {
+  id uuid [pk]
+  email varchar [unique, not null]
+  full_name varchar [not null]
+  hashed_password varchar [not null]
+  role user_role [not null]
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+
+  Note: 'Providers + admin accounts. 3 providers + 1 admin seeded for demo purposes.'
+}
+
+Table patients {
+  id uuid [pk]
+  first_name varchar [not null]
+  last_name varchar [not null]
+  date_of_birth date [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (first_name, last_name, date_of_birth) [unique, name: 'uq_patient_identity']
+  }
+
+  Note: 'Unique(first_name, last_name, date_of_birth) is the returning-patient match key.'
+}
+
+Table note_templates {
+  id uuid [pk]
+  name varchar [not null]
+  encounter_type varchar [unique, not null, note: 'auto-derived slug from name, not admin-entered']
+  prompt_instructions text [not null]
+  is_active boolean [not null, default: true]
+  created_by uuid [not null, ref: > users.id]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Note: '6 seeded templates. Admin-managed generation instructions per encounter type.'
+}
+
+Table encounters {
+  id uuid [pk]
+  patient_id uuid [not null, ref: > patients.id]
+  provider_id uuid [not null, ref: > users.id]
+  template_id uuid [ref: > note_templates.id, note: 'nullable -- "General" has no template']
+  status encounter_status [not null, default: 'draft']
+  transcript_text text
+  draft_subjective text
+  draft_objective text
+  draft_assessment text
+  draft_plan text
+  draft_icd10_codes jsonb [not null, default: '[]', note: 'code+description pairs, validated against icd10_codes.code at write time -- not a DB FK, see icd10_codes note']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Note: 'One row per patient visit; also doubles as the live autosaved draft (session persistence).'
+}
+
+Table note_versions {
+  id uuid [pk]
+  encounter_id uuid [not null, ref: > encounters.id]
+  version_number int [not null]
+  subjective text [not null]
+  objective text [not null]
+  assessment text [not null]
+  plan text [not null]
+  icd10_codes jsonb [not null, default: '[]', note: 'code+description pairs, validated against icd10_codes.code at write time -- not a DB FK, see icd10_codes note']
+  saved_by_user_id uuid [not null, ref: > users.id]
+  saved_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (encounter_id, version_number) [unique, name: 'uq_note_version_number']
+  }
+
+  Note: 'Append-only audit trail. A row is written on every Save; existing rows are never updated or deleted.'
+}
+
+Table icd10_codes {
+  id integer [pk, increment]
+  code varchar [unique, not null]
+  description varchar [not null]
+  embedding "vector(384)" [not null, note: 'pgvector column, all-MiniLM-L6-v2 embeddings']
+
+  Note: '''231 seeded rows, powers the semantic ICD-10 search widget.
+
+  Referenced BY VALUE (code+description copied at write time) from
+  encounters.draft_icd10_codes and note_versions.icd10_codes -- deliberately
+  NOT a real foreign key. A note_version is an immutable historical snapshot;
+  it must record the code and description exactly as understood at save time,
+  independent of what this table looks like later. Every value written into
+  either JSONB column is still resolved against this table first (exact match,
+  then semantic fallback via the same pgvector search the widget uses) -- a
+  controlled denormalization, not an unvalidated free-text field.'''
+}
+
+Table audit_log {
+  id uuid [pk]
+  user_id uuid [ref: > users.id, note: 'nullable -- system-initiated entries']
+  action varchar [not null]
+  entity_type varchar [not null]
+  entity_id varchar
+  details jsonb [not null, default: '{}']
+  created_at timestamptz [not null, default: `now()`]
+
+  Note: 'Security/admin action log (logins, saves, deactivations, template edits) -- not clinical note content, kept separate from note_versions.'
+}

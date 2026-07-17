@@ -1,0 +1,12 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      APP_ENV: aws
+      AWS_SECRET_ID: kyron-scribe/app-secrets
+      AWS_REGION: us-east-1
+    # Bound to loopback only -- nginx (on the host) is the sole entry point on 80/443;
+    # the app process itself is never reachable directly from outside the instance.
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
