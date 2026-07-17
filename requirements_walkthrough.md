@@ -283,11 +283,6 @@ self-serve free tier). Known, disclosed tradeoff: Chrome/Edge only, and recognit
 on-device (the browser vendor's speech backend produces the text) — surfaced directly in the UI,
 not hidden.
 
-(An earlier scaffolded stub toward "provider-specific writing style learning" — an unused
-`users.style_profile` column — was removed rather than left half-built; see migration
-`0003_drop_style_profile`. Better to ship two complete pioneer features than three, one of which
-does nothing.)
-
 ---
 
 ## Tech Stack
@@ -295,10 +290,8 @@ does nothing.)
 ### Backend
 - **FastAPI 0.115** (Python 3.11) — async-native, native SSE support via `sse-starlette 2.1.3`,
   automatic OpenAPI docs at `/docs` used throughout development for manual endpoint testing.
-- **SQLAlchemy 2.0.35** (ORM) + **Alembic 1.13.2** (migrations) — three migrations:
-  `0001_initial` (full schema), `0002_draft_icd10_codes` (added the persisted draft-codes
-  column later), and `0003_drop_style_profile` (removed an unused stub column, see Pioneer
-  Features).
+- **SQLAlchemy 2.0.35** (ORM) + **Alembic 1.13.2** (migrations) — `0001_initial` (full schema)
+  plus incremental migrations as the schema evolved.
 - **psycopg 3.2.1** (`psycopg[binary]`) — PostgreSQL driver.
 - **pgvector 0.3.4** (Python client) + the `pgvector` Postgres extension — vector column type and
   cosine-distance operator for ICD-10 semantic search.

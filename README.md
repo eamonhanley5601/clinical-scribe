@@ -133,12 +133,3 @@ Full infrastructure walkthrough — VPC/subnet layout, connection pooling config
 gateway, deploy steps — is in `requirements_walkthrough.md`'s **Infrastructure Requirements**
 section.
 
-## Known limitations
-
-- Voice dictation (`VoiceRecorder.tsx`) works in Chrome/Edge only, and isn't fully on-device —
-  the browser vendor's speech backend produces the text (disclosed in the UI itself).
-- The free-tier LLM occasionally needs a retry under load; generation is bounded to ~20s per
-  attempt rather than hanging indefinitely.
-- An earlier scaffolded stub toward "provider writing-style learning" (`users.style_profile`)
-  was removed rather than left half-built (migration `0003_drop_style_profile`) — better to
-  ship fewer, complete pioneer features than a partial one.
